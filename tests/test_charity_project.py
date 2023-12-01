@@ -442,6 +442,7 @@ def test_update_charity_project_invalid(superuser_client, charity_project,
 def test_update_charity_with_unexpected_fields(superuser_client,
                                                charity_project, json):
     response = superuser_client.patch('/charity_project/1', json=json)
+    print(json)
     assert response.status_code == 422, (
         'Убедитесь, что при редактировании проекта нельзя изменить значение '
         'полей, редактирование которых не предусмотрено спецификацией к API. '
