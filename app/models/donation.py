@@ -8,7 +8,7 @@ from app.core.db import Base
 class Donation(Base):
     comment = Column(Text)
     full_amount = Column(Integer, nullable=False,)
-    create_date = Column(DateTime, default=datetime.now(),)
+    create_date = Column(DateTime, default=datetime.now,)
     close_date = Column(DateTime,)
     user_id = Column(
         Integer,
