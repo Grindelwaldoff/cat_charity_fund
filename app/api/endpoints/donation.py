@@ -9,6 +9,7 @@ from app.schemas.donation import (
 from app.core.db import get_async_session
 from app.core.user import current_superuser, current_user
 from app.models import User
+from app.services.investment import donation_investment_calculation
 from app.crud.donation import donation_crud
 
 
@@ -23,7 +24,9 @@ async def donate(
     user: User = Depends(current_user),
     session: AsyncSession = Depends(get_async_session),
 ):
-    return await donation_crud.create(obj_in, session, user)
+    instance = await donation_crud.create(obj_in, session, user)
+    await donation_investment_calculation(instance, session)
+    return instance
 
 
 @router.get("/my", response_model=list[UsersDonationList])

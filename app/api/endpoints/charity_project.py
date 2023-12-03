@@ -9,6 +9,7 @@ from app.crud.charity_project import charity_project_crud
 from app.core.db import get_async_session
 from app.core.user import current_superuser
 from app.api.validators import check_charity_project_exist, check_project_unique_name, check_project_on_delete_available, check_project_new_sum, check_project_isnot_closed
+from app.services.investment import project_investment_calculation
 
 
 router = APIRouter()
@@ -36,14 +37,16 @@ async def delete_projects(
 
 @router.post(
     '/', response_model=CharityProjectList,
-    dependencies=[Depends(current_superuser)], response_model_exclude_none=True
+    dependencies=[Depends(current_superuser)],
+    response_model_exclude_none=True,
 )
 async def create_project(
     charity_project: CharityProjectCreate,
     session: AsyncSession = Depends(get_async_session)
 ):
     await check_project_unique_name(charity_project.name, session)
-    return await charity_project_crud.create(charity_project, session)
+    instance = await charity_project_crud.create(charity_project, session)
+    return await project_investment_calculation(instance, session)
 
 
 @router.patch(

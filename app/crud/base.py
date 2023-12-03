@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import TypeVar, Generic, Type, Optional, List
 
 from pydantic import BaseModel
@@ -26,7 +27,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         )
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession) -> List[ModelType]:
+    async def get_multi(self, session: AsyncSession, **kwargs) -> List[ModelType]:
         db_objs = await session.execute(select(self.model))
         return db_objs.scalars().all()
 
@@ -47,6 +48,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         if user is not None:
             obj_in_data['user_id'] = user.id
         db_obj = self.model(**obj_in_data)
+        session.add(db_obj)
+        await session.commit()
+        await session.refresh(db_obj)
+        return db_obj
+
+    async def close_obj(
+        self, db_obj: ModelType, session: AsyncSession
+    ) -> ModelType:
+        if db_obj.full_amount == db_obj.invested_amount:
+            db_obj.fully_invested = True
+            db_obj.close_date = datetime.now()
         session.add(db_obj)
         await session.commit()
         await session.refresh(db_obj)

@@ -14,6 +14,12 @@ from app.models.charity_project import CharityProject
 class CRUDCharity(
     CRUDBase[CharityProject, CharityProjectCreate, CharityProjectUpdate]
 ):
+    async def get_first_unfilled(self, session: AsyncSession):
+        instances = await session.execute(
+            select(CharityProject).where(CharityProject.fully_invested == 0)
+        )
+        return instances.scalars().first()
+
     async def get_by_any_field(
         self, value: str, session: AsyncSession
     ) -> Optional[int]:

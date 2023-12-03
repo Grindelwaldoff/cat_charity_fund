@@ -24,6 +24,10 @@ async def check_project_unique_name(name: str, session: AsyncSession) -> None:
         )
 
 
+def check_availablesum_size(donation, full_sum, invested_sum):
+    pass
+
+
 async def check_project_on_delete_available(
     obj: CharityProject
 ) -> None:
