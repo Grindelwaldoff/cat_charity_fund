@@ -1,7 +1,5 @@
-from typing import Optional
-
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.base import CRUDBase
 from app.schemas.charity_project import (
@@ -11,22 +9,12 @@ from app.schemas.charity_project import (
 from app.models.charity_project import CharityProject
 
 
-class CRUDCharity(
-    CRUDBase[CharityProject, CharityProjectCreate, CharityProjectUpdate]
-):
-    async def get_first_unfilled(self, session: AsyncSession):
-        instances = await session.execute(
-            select(CharityProject).where(CharityProject.fully_invested == 0)
+class CRUDCharity(CRUDBase[CharityProject, CharityProjectCreate, CharityProjectUpdate]):
+    async def get_by_name(self, name: str, session: AsyncSession):
+        obj = await session.execute(
+            select(CharityProject).where(CharityProject.name == name)
         )
-        return instances.scalars().first()
-
-    async def get_by_any_field(
-        self, value: str, session: AsyncSession
-    ) -> Optional[int]:
-        instance = await session.execute(
-            select(CharityProject).where(self.model.name == value)
-        )
-        return instance.scalars().first()
+        return obj.scalars().first()
 
 
 charity_project_crud = CRUDCharity(CharityProject)

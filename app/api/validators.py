@@ -17,7 +17,7 @@ async def check_charity_project_exist(
 
 
 async def check_project_unique_name(name: str, session: AsyncSession) -> None:
-    instance = await charity_project_crud.get_by_any_field(name, session)
+    instance = await charity_project_crud.get_by_name(name, session)
     if instance:
         raise HTTPException(
             status_code=400, detail="Проект с таким именем уже существует!"

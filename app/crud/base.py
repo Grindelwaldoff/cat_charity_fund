@@ -1,13 +1,13 @@
-from datetime import datetime
 from typing import TypeVar, Generic, Type, Optional, List
 
 from pydantic import BaseModel
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy import select
+from sqlalchemy import select, false
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import Base
 from app.models import User
+from app.services.investment import investment
 
 
 ModelType = TypeVar("ModelType", bound=Base)
@@ -42,27 +42,31 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         self,
         obj_in: CreateSchemaType,
         session: AsyncSession,
+        cls_in,
         user: Optional[User] = None,
     ) -> ModelType:
         obj_in_data = obj_in.dict()
         if user is not None:
             obj_in_data['user_id'] = user.id
-        db_obj = self.model(**obj_in_data)
-        session.add(db_obj)
+        instance = self.model(**obj_in_data)
+        instance.invested_amount = 0
+        non_unfilled = await session.execute(
+            select(cls_in).where(cls_in.fully_invested == false())
+        )
+        objects = investment(
+            instance,
+            non_unfilled.scalars().all()
+        )
+        session.add_all(objects)
         await session.commit()
-        await session.refresh(db_obj)
-        return db_obj
+        await session.refresh(instance)
+        return instance
 
-    async def close_obj(
-        self, db_obj: ModelType, session: AsyncSession
-    ) -> ModelType:
-        if db_obj.full_amount == db_obj.invested_amount:
-            db_obj.fully_invested = True
-            db_obj.close_date = datetime.now()
-        session.add(db_obj)
-        await session.commit()
-        await session.refresh(db_obj)
-        return db_obj
+    # async def get_all_unfilled(self, session: AsyncSession):
+    #     instances = await session.execute(
+    #         select(self.model).where(self.model.fully_invested == false())
+    #     )
+    #     return instances.scalars().all()
 
     async def update(
         self,

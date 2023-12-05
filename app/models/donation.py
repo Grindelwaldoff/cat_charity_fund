@@ -16,3 +16,8 @@ class Donation(Base):
     )
     invested_amount = Column(Integer, default=0,)
     fully_invested = Column(Boolean, default=False,)
+
+    def invested(self):
+        self.fully_invested = True
+        self.close_date = datetime.now()
+        self.invested_amount = self.full_amount

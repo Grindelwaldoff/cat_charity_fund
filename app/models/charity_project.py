@@ -15,3 +15,8 @@ class CharityProject(Base):
         DateTime, default=datetime.now
     )
     close_date = Column(DateTime)
+
+    def invested(self):
+        self.fully_invested = True
+        self.close_date = datetime.now()
+        self.invested_amount = self.full_amount

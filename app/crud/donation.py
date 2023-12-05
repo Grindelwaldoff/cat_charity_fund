@@ -13,13 +13,5 @@ class CRUDDonation(CRUDBase[Donation, DonationCreate, None]):
         )
         return objs.scalars().all()
 
-    async def get_multi_unused_donations(self, session: AsyncSession):
-        objs = await session.execute(
-            select(Donation).where(
-                Donation.fully_invested == 0
-            )
-        )
-        return objs.scalars().all()
-
 
 donation_crud = CRUDDonation(Donation)
