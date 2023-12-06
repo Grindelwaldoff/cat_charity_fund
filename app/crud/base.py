@@ -62,11 +62,17 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         await session.refresh(instance)
         return instance
 
-    # async def get_all_unfilled(self, session: AsyncSession):
-    #     instances = await session.execute(
-    #         select(self.model).where(self.model.fully_invested == false())
-    #     )
-    #     return instances.scalars().all()
+    async def get_by_name(self, name: str, session: AsyncSession):
+        obj = await session.execute(
+            select(self.model).where(self.model.name == name)
+        )
+        return obj.scalars().first()
+
+    async def get_users_donation(self, user: User, session: AsyncSession):
+        objs = await session.execute(
+            select(self.model).where(self.model.user_id == user.id)
+        )
+        return objs.scalars().all()
 
     async def update(
         self,
